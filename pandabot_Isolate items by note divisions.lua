@@ -17,5 +17,5 @@ About:
     Isolate items by note division lengths with fade-in and fade-outs, useful for comping vst output
     
     #### How do I use it?
-    There is an instructional gif [here](https://github.com/benjohnson2001/ExtendItemsByNoteDivisions/raw/master/extendItemsByNoteDivision.gif)
+    There is an instructional gif [here](https://raw.githubusercontent.com/benjohnson2001/IsolateItemsByNoteDivisions/master/isolateItemsByNoteDivision.gif)
 --]]
