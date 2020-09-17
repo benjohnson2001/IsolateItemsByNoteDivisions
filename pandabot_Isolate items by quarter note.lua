@@ -34,30 +34,49 @@ function getIndicesOfSelectedTracks()
 
 	local selectedTrackIndices = {}
 
-	local numberOfSelectedTracks = reaper.CountSelectedTracks(activeProjectIndex)
+	local wantMasterTrack = true
+	local numberOfSelectedTracks = reaper.CountSelectedTracks2(activeProjectIndex, wantMasterTrack)
 
 	for i = 0, numberOfSelectedTracks - 1 do
 
-		local selectedTrack = reaper.GetSelectedTrack(activeProjectIndex, i)
+		local selectedTrack = reaper.GetSelectedTrack2(activeProjectIndex, i, wantMasterTrack)
 		local trackNumber = reaper.GetMediaTrackInfo_Value(selectedTrack, "IP_TRACKNUMBER")
-		local trackIndex = trackNumber - 1
-		selectedTrackIndices[i+1] = trackIndex
+
+		if trackNumber == -1 then
+			selectedTrackIndices[i+1] = 0.0
+		else
+			selectedTrackIndices[i+1] = trackNumber
+		end
 	end
 
 	return selectedTrackIndices
+end
+
+function unselectMasterTrack()
+
+	local masterTrack = reaper.GetMasterTrack(activeProjectIndex)
+	reaper.SetTrackSelected(masterTrack, false)
 end
 
 function unselectAllTracks()
 
 	local commandId = 40297
   reaper.Main_OnCommand(commandId, 0)
+
+  unselectMasterTrack()
 end
 
 function restoreTrackSelections(selectedTrackIndices)
 
 	for i = 1, #selectedTrackIndices do
-		local track = reaper.GetTrack(activeProjectIndex, selectedTrackIndices[i])
-		reaper.SetTrackSelected(track, true)
+
+		if selectedTrackIndices[i] == 0 then
+			local track = reaper.GetMasterTrack(activeProjectIndex)
+			reaper.SetTrackSelected(track, true)
+		else
+			local track = reaper.GetTrack(activeProjectIndex, selectedTrackIndices[i]-1)
+			reaper.SetTrackSelected(track, true)
+		end
 	end
 end
 
