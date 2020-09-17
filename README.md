@@ -1,0 +1,1 @@
+![isolateItemsByNoteDivision](isolateItemsByNoteDivision.gif)
