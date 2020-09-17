@@ -6,6 +6,9 @@ function print(arg)
   reaper.ShowConsoleMsg(tostring(arg) .. "\n")
 end
 
+function emptyFunctionToPreventAutomaticCreationOfUndoPoint()
+end
+
 function startUndoBlock()
 	reaper.Undo_BeginBlock()
 end
@@ -29,24 +32,7 @@ function lengthOfEighthNote()
 	return lengthOfQuarterNote()/2
 end
 
-function lengthOfSixteenthNote()
-	return lengthOfEighthNote()/2
-end
-
-function lengthOfThirtySecondNote()
-	return lengthOfSixteenthNote()/2
-end
-
-function lengthOfSixtyFourthNote()
-	return lengthOfThirtySecondNote()/2
-end
-
-function lengthOfHundredTwentyEighthNote()
-	return lengthOfSixtyFourthNote()/2
-end
-
 --
-
 
 function getIndicesOfSelectedTracks()
 
@@ -161,12 +147,28 @@ function addEnvelopePoints(trackEnvelope, startPosition, endPosition, noteLength
 	local minValue = 0.0
 	local centerValue = 1.0
 
-	if startingEnvelopePointIsAtCenterValue(trackEnvelope) then
-		reaper.InsertEnvelopePoint(trackEnvelope, 0.0, minValue, linearShape(), tension, selected, noSort)
-	end
 
-	reaper.InsertEnvelopePoint(trackEnvelope, startPosition-noteLength, minValue, fastEndShape(), tension, selected, noSort)
-	reaper.InsertEnvelopePoint(trackEnvelope, startPosition, centerValue, linearShape(), tension, selected, noSort)
+	if startPosition == 0.0 then
+
+		if not startingEnvelopePointIsAtCenterValue(trackEnvelope) then
+			reaper.InsertEnvelopePoint(trackEnvelope, 0.0, centerValue, linearShape(), tension, selected, noSort)
+		end
+	
+	else
+
+		if startPosition-noteLength < 0.0 then
+			reaper.InsertEnvelopePoint(trackEnvelope, 0.0, minValue, fastEndShape(), tension, selected, noSort)
+		else
+
+			if startingEnvelopePointIsAtCenterValue(trackEnvelope) then
+				reaper.InsertEnvelopePoint(trackEnvelope, 0.0, minValue, linearShape(), tension, selected, noSort)
+			end
+
+			reaper.InsertEnvelopePoint(trackEnvelope, startPosition-noteLength, minValue, fastEndShape(), tension, selected, noSort)
+		end
+
+		reaper.InsertEnvelopePoint(trackEnvelope, startPosition, centerValue, linearShape(), tension, selected, noSort)
+	end
 
 	reaper.InsertEnvelopePoint(trackEnvelope, endPosition, centerValue, fastStartShape(), tension, selected, noSort)
 	reaper.InsertEnvelopePoint(trackEnvelope, endPosition+noteLength, minValue, linearShape(), tension, selected, noSort)
@@ -192,10 +194,17 @@ function isolateItems()
 	end
 end
 
+-----
+
+local numberOfSelectedItems = reaper.CountSelectedMediaItems(activeProjectIndex)
+
+if numberOfSelectedItems == 0 then
+	reaper.defer(emptyFunctionToPreventAutomaticCreationOfUndoPoint)
+	return
+end
 
 startUndoBlock()
 
-	
 	local selectedTrackIndices = getIndicesOfSelectedTracks()
 	unselectAllTracks()
 	showVolumeEnvelopes()
